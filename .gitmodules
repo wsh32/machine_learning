@@ -1,0 +1,3 @@
+[submodule "MLfall2021"]
+	path = MLfall2021
+	url = git@github.com:olincollege/MLfall2021.git
