@@ -3,7 +3,7 @@ from tqdm import tqdm
 from time import sleep
 from dqn_agent import DQN_Agent
 
-env = gym.make('CartPole-v0')
+env = gym.make('CartPole-v1')
 env = gym.wrappers.Monitor(env, "record_dir", force='True')
 
 input_dim = env.observation_space.shape[0]

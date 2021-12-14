@@ -2,6 +2,9 @@ from dqn_agent import DQN_Agent
 import gym
 from tqdm import tqdm
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 env = gym.make('CartPole-v0')
 input_dim = env.observation_space.shape[0]
 output_dim = env.action_space.n
@@ -29,28 +32,45 @@ for i in range(exp_replay_size):
             break
 
 index = 128
-for i in tqdm(range(episodes)):
-    obs, done, losses, ep_len, rew = env.reset(), False, 0, 0, 0
-    while not done:
-        ep_len += 1
-        A = agent.get_action(obs, env.action_space.n, epsilon)
-        obs_next, reward, done, _ = env.step(A.item())
-        agent.collect_experience([obs, A.item(), reward, obs_next])
+log_every = 100
+rewards = []
+try:
+    for i in range(episodes):
+        obs, done, losses, ep_len, rew = env.reset(), False, 0, 0, 0
+        while not done:
+            ep_len += 1
+            A = agent.get_action(obs, env.action_space.n, epsilon)
+            obs_next, reward, done, _ = env.step(A.item())
+            #env.render()
+            agent.collect_experience([obs, A.item(), reward, obs_next])
 
-        obs = obs_next
-        rew += reward
-        index += 1
+            obs = obs_next
+            rew += reward
+            index += 1
 
-        if index > 128:
-            index = 0
-            for j in range(4):
-                loss = agent.train(batch_size=16)
-                losses += loss
-    if epsilon > 0.05:
-        epsilon -= (1 / 5000)
+            if index > 128:
+                index = 0
+                for j in range(4):
+                    loss = agent.train(batch_size=16)
+                    losses += loss
+        if epsilon > 0.05:
+            epsilon -= (1 / 5000)
 
-    losses_list.append(losses / ep_len), reward_list.append(rew)
-    episode_len_list.append(ep_len), epsilon_list.append(epsilon)
+        losses_list.append(losses / ep_len), reward_list.append(rew)
+        episode_len_list.append(ep_len), epsilon_list.append(epsilon)
+
+        if i % log_every == 0:
+            print(f"Episode: {i}\tReward: {rew}")
+            rewards.append(rew)
+except KeyboardInterrupt:
+    pass
+
+x_axis = np.array(range(len(rewards_filtered))) * log_every
+plt.plot(rewards)
+plt.title("CartPole Final Reward Per Episode")
+plt.xlabel("Episode")
+plt.ylabel("Reward")
+plt.show()
 
 print("Saving trained model")
 agent.save_trained_model("cartpole-dqn.pth")
